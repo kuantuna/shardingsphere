@@ -57,22 +57,25 @@ env:
 
 jobs:
   checkstyle-and-apache-rat:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 10
     steps:
+      - run: touch starting_63
       - uses: actions/checkout@v3
+      - run: touch starting_64
       - name: Cache dependencies of Checkstyle and Apache Rat
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: maven-cache-checkstyle-and-apache-rat-${{ hashFiles('**/pom.xml') }}
+      - run: touch starting_69
       - name: Run Checkstyle and Apache Rat
         run: ./mvnw checkstyle:check apache-rat:check -T1C
 
   linux:
     if: github.repository == 'apache/shardingsphere'
     name: JDK ${{ matrix.java_version }} - on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    runs-on: self-hosted
     needs: checkstyle-and-apache-rat
     timeout-minutes: 60
     strategy:
@@ -80,14 +83,18 @@ jobs:
         os: [ ubuntu-latest ]
         java_version: [ 8, 17, 18 ]
     steps:
+      - run: touch starting_83
       - uses: actions/checkout@v3
+      - run: touch starting_84
       - name: Set up JDK ${{ matrix.java_version }}
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java_version }}
+      - run: touch starting_89
       - name: Maven resolve ranges
         run: ./mvnw versions:resolve-ranges -ntp -Dincludes='org.springframework:*,org.springframework.boot:*'
+      - run: touch starting_91
       - name: Cache Maven Repos
         uses: actions/cache@v2
         with:
@@ -95,8 +102,10 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - run: touch starting_98
       - name: Build with Maven
         run: ./mvnw -B -ntp clean install -Dmaven.javadoc.skip=true -Drat.skip=true -Dcheckstyle.skip=true -Djacoco.skip=true -Dspotless.apply.skip=true
+      - run: touch starting_100
       - name: Build examples with Maven
         run: ./mvnw -B -f examples/pom.xml clean package -DskipTests
   
@@ -104,12 +113,15 @@ jobs:
   shardingsphere-example-generator:
     if: github.repository == 'apache/shardingsphere'
     name: ShardingSphere example generator
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: checkstyle-and-apache-rat
     steps:
+      - run: touch starting_110
       - uses: actions/checkout@v3
+      - run: touch starting_111
       - name: Maven resolve ranges
         run: ./mvnw versions:resolve-ranges -ntp -Dincludes='org.springframework:*,org.springframework.boot:*'
+      - run: touch starting_113
       - name: Cache Maven Repos
         uses: actions/cache@v2
         with:
@@ -117,23 +129,28 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - run: touch starting_120
       - name: Set up JDK 8
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
           java-version: 8
+      - run: touch starting_125
       - name: Build Project
         run: ./mvnw -B -ntp clean install -Dmaven.javadoc.skip=true -Drat.skip=true -Dcheckstyle.skip=true -DskipITs -DskipTests -Dspotless.apply.skip=true
+      - run: touch starting_127
       - name: Run Example generator
         run: ./mvnw -B test -f examples/shardingsphere-example-generator/pom.xml -Pexample-generator
 
   test-coverage-report:
     if: github.repository == 'apache/shardingsphere'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: ShardingSphere test coverage report
     needs: checkstyle-and-apache-rat
     steps:
+      - run: touch starting_136
       - uses: actions/checkout@v3
+      - run: touch starting_137
       - name: Cache Maven Repos
         uses: actions/cache@v2
         with:
@@ -141,12 +158,16 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven- 
+      - run: touch starting_144
       - name: Set up JDK 8
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
           java-version: 8
+      - run: touch starting_149
       - name: Test with Maven
         run: ./mvnw -B -ntp clean install cobertura:cobertura -Dmaven.javadoc.skip=true -Drat.skip=true -Dcheckstyle.skip=true
+      - run: touch starting_151
       - name: Upload to Codecov
         run: bash <(curl -s https://codecov.io/bash)
+
